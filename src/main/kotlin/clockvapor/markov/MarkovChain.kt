@@ -1,13 +1,14 @@
 package clockvapor.markov
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 import java.util.*
 
 // Needs to remain public for JSON writing
 @Suppress("MemberVisibilityCanBePrivate")
-class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
-    @Transient
+open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
+    @JsonIgnore
     var random = Random()
 
     /**
