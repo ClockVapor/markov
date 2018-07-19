@@ -7,12 +7,15 @@ import java.util.*
  * Returns null if the [Map] is empty.
  */
 fun <T> Map<T, Int>.getWeightedRandomKey(random: Random): T? {
-    val x = random.nextInt(values.sum())
-    var current = 0
-    for ((w, count) in this) {
-        current += count
-        if (x < current) {
-            return w
+    val totalCount = values.sum()
+    if (totalCount > 0) {
+        val x = random.nextInt(totalCount)
+        var current = 0
+        for ((w, count) in this) {
+            current += count
+            if (x < current) {
+                return w
+            }
         }
     }
     return null
