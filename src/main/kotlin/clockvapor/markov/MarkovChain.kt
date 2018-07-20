@@ -7,12 +7,13 @@ import java.util.*
 
 // Needs to remain public for JSON writing
 @Suppress("MemberVisibilityCanBePrivate")
-open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
+open class MarkovChain(private val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
+    /** A [Random] instance used to generate random content. */
     @JsonIgnore
     var random = Random()
 
-    /** Generates a list of words with the "empty" starting seed. */
-    fun generate(): List<String> = getWeightedRandomWord(EMPTY)?.let { seed ->
+    /** Generates a list of words starting with a random seed. */
+    fun generate(): List<String> = getNextWord(EMPTY)?.let { seed ->
         val result = generateWithSeed(seed)
         when (result) {
             is GenerateWithSeedResult.Success -> result.message
@@ -27,7 +28,7 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
             var word: String? = seed
             while (word != null && word != EMPTY) {
                 result += word
-                word = getWeightedRandomWord(word)
+                word = getNextWord(word)
             }
             GenerateWithSeedResult.Success(result)
         } else {
@@ -85,7 +86,7 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
     }
 
     /** Gets a random word following the given word. */
-    private fun getWeightedRandomWord(word: String): String? = data[word]?.getWeightedRandomKey(random)
+    private fun getNextWord(word: String): String? = data[word]?.getWeightedRandomKey(random)
 
     /** Writes the Markov chain as a JSON file to the given path. */
     fun write(path: String) {
@@ -94,11 +95,11 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
 
     /** Parent type of all results produced when attempting to generate a message from some seed value. */
     sealed class GenerateWithSeedResult {
-        /** Result produced when the given seed is not found in the Markov chain. */
-        class NoSuchSeed : GenerateWithSeedResult()
-
         /** Result produced when a message is successfully generated. */
         class Success(val message: List<String>) : GenerateWithSeedResult()
+
+        /** Result produced when the given seed is not found in the Markov chain. */
+        class NoSuchSeed : GenerateWithSeedResult()
     }
 
     companion object {
