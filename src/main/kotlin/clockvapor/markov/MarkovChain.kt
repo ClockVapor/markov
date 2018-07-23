@@ -7,7 +7,7 @@ import java.util.*
 
 // Needs to remain public for JSON writing
 @Suppress("MemberVisibilityCanBePrivate")
-open class MarkovChain(private val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
+open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf()) {
     /** A [Random] instance used to generate random content. */
     @JsonIgnore
     var random = Random()
