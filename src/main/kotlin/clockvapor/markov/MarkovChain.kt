@@ -41,7 +41,11 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
             .mapValues { it.value.values.sum() }
             .getWeightedRandomKey(random)?.let(::generateWithSeed) ?: GenerateWithSeedResult.NoSuchSeed()
 
-    /** Adds a list of words to the Markov chain. */
+    /**
+     * Adds a list of words to the Markov chain. A single count will be given or added to each pair of
+     * consecutive words in the list.
+     * @see [addPair]
+     */
     fun add(words: List<String>) {
         if (words.isNotEmpty()) {
             addPair(EMPTY, words.first())
@@ -52,7 +56,11 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
         }
     }
 
-    /** Removes a list of words from the Markov chain. */
+    /**
+     * Removes a list of words from the Markov chain. A single count will be removed from each pair of
+     * consecutive words in the list.
+     * @see [removePair]
+     */
     fun remove(words: List<String>) {
         if (words.isNotEmpty()) {
             removePair(EMPTY, words.first())
@@ -64,29 +72,31 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
     }
 
     /** Clears all data from the Markov chain. */
-    fun clear() = data.clear()
+    fun clear(): Unit = data.clear()
 
-    /** Adds a single count to a pair of words in the Markov chain. */
-    private fun addPair(a: String, b: String) {
-        data.getOrPut(a) { mutableMapOf() }.compute(b) { _, c -> c?.plus(1) ?: 1 }
-    }
+    /** Adds a single count to a pair of words in the Markov chain. Returns the new count for the pair. */
+    private fun addPair(a: String, b: String): Int =
+        data.getOrPut(a) { mutableMapOf() }.compute(b) { _, c -> c?.plus(1) ?: 1 }!!
 
-    /** Removes a single count from a pair of words in the Markov chain. */
-    private fun removePair(a: String, b: String) {
+    /**
+     * Removes a single count from a pair of words in the Markov chain. Returns the new count for the pair, or null
+     * if the pair does not exist in the Markov chain. If the returned count is less than 1, the pair has been removed
+     * from the Markov chain.
+     */
+    private fun removePair(a: String, b: String): Int? =
         data[a]?.let { wordMap ->
-            wordMap.computeIfPresent(b) { _, count -> count - 1 }
-            val c = wordMap[b]
-            if (c != null && c <= 0) {
-                wordMap -= b
-                if (wordMap.isEmpty()) {
-                    data -= a
+            wordMap.computeIfPresent(b) { _, count -> count - 1 }.also {
+                if (it != null && it <= 0) {
+                    wordMap -= b
+                    if (wordMap.isEmpty()) {
+                        data -= a
+                    }
                 }
             }
         }
-    }
 
     /** Gets a random word following the given word. */
-    private fun getNextWord(word: String): String? = data[word]?.getWeightedRandomKey(random)
+    fun getNextWord(word: String): String? = data[word]?.getWeightedRandomKey(random)
 
     /** Writes the Markov chain as a JSON file to the given path. */
     fun write(path: String) {
