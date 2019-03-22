@@ -5,6 +5,35 @@ import org.junit.Test
 
 class MarkovChainTest {
     @Test
+    fun testAddMarkovChain() {
+        val markovChain = MarkovChain(mutableMapOf())
+        val markovChain2 = MarkovChain(mutableMapOf(
+            "foo" to mutableMapOf(
+                "bar" to 4,
+                "baz" to 2
+            ),
+            "hello" to mutableMapOf(
+                "world" to 1,
+                "friends" to 1
+            )
+        ))
+        markovChain.add(markovChain2)
+        Assert.assertEquals(
+            mutableMapOf(
+                "foo" to mutableMapOf(
+                    "bar" to 4,
+                    "baz" to 2
+                ),
+                "hello" to mutableMapOf(
+                    "world" to 1,
+                    "friends" to 1
+                )
+            ),
+            markovChain.data
+        )
+    }
+
+    @Test
     fun testRemoveMarkovChain() {
         val markovChain = MarkovChain(mutableMapOf(
             "foo" to mutableMapOf(
