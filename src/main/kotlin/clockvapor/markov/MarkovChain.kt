@@ -71,6 +71,20 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
         }
     }
 
+    /**
+     * Removes the data contained in a [MarkovChain] from this Markov chain.
+     * @see [remove]
+     * @see [removePair]
+     */
+    fun remove(markovChain: MarkovChain) {
+        for (word in ArrayList(markovChain.data.keys)) {
+            val dataMap = markovChain.data[word]!!
+            for (secondWord in ArrayList(dataMap.keys)) {
+                removePair(word, secondWord, dataMap[secondWord] ?: 0)
+            }
+        }
+    }
+
     /** Clears all data from the Markov chain. */
     fun clear(): Unit = data.clear()
 
@@ -83,17 +97,19 @@ open class MarkovChain(val data: MutableMap<String, MutableMap<String, Int>> = m
      * if the pair does not exist in the Markov chain. If the returned count is less than 1, the pair has been removed
      * from the Markov chain.
      */
-    private fun removePair(a: String, b: String): Int? =
-        data[a]?.let { wordMap ->
-            wordMap.computeIfPresent(b) { _, count -> count - 1 }.also {
-                if (it != null && it <= 0) {
-                    wordMap -= b
-                    if (wordMap.isEmpty()) {
-                        data -= a
+    private fun removePair(a: String, b: String, amount: Int = 1): Int? =
+        if (amount < 1) null
+        else
+            data[a]?.let { wordMap ->
+                wordMap.computeIfPresent(b) { _, count -> count - amount }.also {
+                    if (it != null && it <= 0) {
+                        wordMap -= b
+                        if (wordMap.isEmpty()) {
+                            data -= a
+                        }
                     }
                 }
             }
-        }
 
     /** Gets a random word following the given word. */
     fun getNextWord(word: String): String? = data[word]?.getWeightedRandomKey(random)
